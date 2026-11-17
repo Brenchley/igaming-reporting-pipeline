@@ -1,0 +1,6 @@
+-r ingestion/requirements.txt
+dbt-core>=1.10,<2
+dbt-duckdb>=1.9
+dbt-bigquery>=1.9
+duckdb>=1.1
+flask>=3.0

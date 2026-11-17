@@ -1,0 +1,24 @@
+{
+  "displayName": "iGaming reporting pipeline: failure or reconciliation alert",
+  "combiner": "OR",
+  "conditions": [
+    {
+      "displayName": "Pipeline raised an alert (failed load, dbt failure or figures don't reconcile)",
+      "conditionMatchedLog": {
+        "filter": "resource.type=\"cloud_run_job\" AND severity>=ERROR AND jsonPayload.alert_type=\"reporting_pipeline\""
+      }
+    },
+    {
+      "displayName": "Pipeline job execution failed",
+      "conditionMatchedLog": {
+        "filter": "resource.type=\"cloud_run_job\" AND protoPayload.methodName=\"/Jobs.RunJob\" AND severity>=ERROR"
+      }
+    }
+  ],
+  "alertStrategy": {"notificationRateLimit": {"period": "3600s"}, "autoClose": "86400s"},
+  "notificationChannels": ["__CHANNEL__"],
+  "documentation": {
+    "content": "See docs/runbook.md. Check the Data Health page in Looker Studio and ops_reporting.ops_load_health in BigQuery.",
+    "mimeType": "text/markdown"
+  }
+}

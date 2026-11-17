@@ -1,0 +1,26 @@
+version: 2
+
+sources:
+  - name: crm
+    description: Raw, append-only landing tables written by the ingestion job. PII already minimised (POPIA).
+    schema: raw_crm
+    loaded_at_field: _loaded_at
+    freshness:
+      warn_after: {count: 3, period: hour}
+      error_after: {count: 6, period: hour}
+    tables:
+      - name: players
+      - name: transactions
+      - name: bets
+      - name: bonus_events
+      - name: crm_daily_summary
+        description: The platform's own back-office daily totals. Used only for reconciliation.
+        freshness:
+          warn_after: {count: 26, period: hour}
+          error_after: {count: 50, period: hour}
+
+  - name: ops
+    schema: ops
+    tables:
+      - name: load_audit
+        description: One row per ingestion batch (success or failure).

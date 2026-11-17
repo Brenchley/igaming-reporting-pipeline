@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: rpt_daily_kpis
+    description: "[Looker Studio] Company KPIs by day/week/month. Additive measures only."
+    config:
+      persist_docs: {relation: true, columns: true}
+    columns:
+      - name: report_date
+        data_tests: [unique, not_null]
+
+  - name: rpt_player_activity_daily
+    description: "[Looker Studio] Self-serve table: player-day measures pre-joined to every player attribute."
+    config:
+      persist_docs: {relation: true, columns: true}
+
+  - name: rpt_ftd_cohorts
+    description: "[Looker Studio] Retention and value by first-deposit month."
+    config:
+      persist_docs: {relation: true, columns: true}

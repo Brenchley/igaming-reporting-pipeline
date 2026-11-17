@@ -1,0 +1,9 @@
+warehouse.duckdb*
+mock_crm/data/
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+__pycache__/
+.env
+*.json.key
+output/

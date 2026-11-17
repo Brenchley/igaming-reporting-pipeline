@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: dim_players
+    description: One row per player with attributes, first-deposit details and lifetime value. Pseudonymous.
+    config:
+      persist_docs: {relation: true, columns: true}
+    columns:
+      - name: player_id
+        description: Platform player ID (pseudonymous; names, ID numbers and contact details are not stored).
+        data_tests: [unique, not_null]
+      - name: age_band
+        description: Age band derived from birth year. Exact DOB is not stored.
+      - name: first_deposit_date
+        description: Date (SAST) of the player's first completed deposit (FTD).
+      - name: value_segment
+        description: VIP (>= R50k lifetime deposits), High (>= R5k), Standard, Non-depositor.
+
+  - name: fct_player_daily
+    description: One row per player per day with activity. The single source for all financial metrics.
+    config:
+      persist_docs: {relation: true, columns: true}
+    data_tests:
+      - unique_combination:
+          arguments: {columns: ['player_id', 'activity_date']}
+    columns:
+      - name: turnover
+        description: Total settled stakes (cash + bonus), by settlement date.
+      - name: ggr
+        description: Gross Gaming Revenue = settled stakes - payouts.
+      - name: bonus_cost
+        description: Bonus money converted to withdrawable cash (event types set by var bonus_cost_event_types).
+      - name: ngr
+        description: Net Gaming Revenue = GGR - bonus cost - gambling levy - VAT (rates set in dbt_project.yml).
+
+  - name: fct_daily_kpis
+    description: Company-level KPIs per reporting day (SAST).
+    config:
+      persist_docs: {relation: true, columns: true}
+    columns:
+      - name: report_date
+        data_tests: [unique, not_null]
+      - name: ftd_count
+        description: First-time depositors on the day.
+      - name: active_players
+        description: Distinct players with at least one settled bet on the day.
+      - name: hold_pct
+        description: GGR / turnover for the day. Do not average across days; recompute from sums.

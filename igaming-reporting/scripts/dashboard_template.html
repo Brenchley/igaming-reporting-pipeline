@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>iGaming Reporting · Dashboard preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f4f5f2;--card:#ffffff;--ink:#16201b;--muted:#5d6b63;--line:#dfe3dc;--accent:#0f7b4f;--accent2:#c9822b;--neg:#b8412f;--chip:#e7efe9;color-scheme:light;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1412;--card:#18201c;--ink:#e6ece8;--muted:#93a39a;--line:#2a3530;--accent:#3fbf86;--accent2:#e3a253;--neg:#e2715e;--chip:#1f2b25;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1412;--card:#18201c;--ink:#e6ece8;--muted:#93a39a;--line:#2a3530;--accent:#3fbf86;--accent2:#e3a253;--neg:#e2715e;--chip:#1f2b25;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-bottom:1px solid var(--line);padding:14px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--card)}
+h1{font-size:17px;margin:0;font-weight:600;letter-spacing:-.01em}
+h1 small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;margin-top:2px}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav a{padding:7px 12px;border-radius:999px;text-decoration:none;color:var(--muted);font-size:13.5px;border:1px solid var(--line)}
+nav a.on{background:var(--accent);border-color:var(--accent);color:#fff}
+main{max-width:1240px;margin:0 auto;padding:20px}
+.view{display:none}.view.on{display:block}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.two{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.card h2{font-size:13px;font-weight:500;color:var(--muted);margin:0 0 10px;text-transform:uppercase;letter-spacing:.04em}
+.kpi .v{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:22px;font-weight:500}
+.kpi .l{font-size:12.5px;color:var(--muted);margin-top:4px}
+.chart{position:relative;height:260px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:500}
+.ok{color:var(--accent);font-weight:600}.bad{color:var(--neg);font-weight:600}
+.note{color:var(--muted);font-size:13px;margin:14px 2px 0;line-height:1.5}
+.badge{font-size:12px;padding:4px 10px;border-radius:999px;background:var(--chip);color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Operator Reporting <small>Preview of the Looker Studio report · synthetic data · ZAR · SAST days</small></h1>
+  <nav id="nav">
+    <a href="#overview" data-v="overview">Executive overview</a>
+    <a href="#players" data-v="players">Players &amp; cohorts</a>
+    <a href="#health" data-v="health">Data health</a>
+  </nav>
+</header>
+<main>
+  <section class="view" id="v-overview">
+    <div class="grid kpis" id="kpis"></div>
+    <div class="grid two" style="margin-top:14px">
+      <div class="card"><h2>GGR vs NGR by day</h2><div class="chart"><canvas id="c-ggr"></canvas></div></div>
+      <div class="card"><h2>Deposits vs withdrawals</h2><div class="chart"><canvas id="c-dep"></canvas></div></div>
+      <div class="card"><h2>GGR by product</h2><div class="chart"><canvas id="c-prod"></canvas></div></div>
+      <div class="card"><h2>Active players &amp; FTDs</h2><div class="chart"><canvas id="c-act"></canvas></div></div>
+    </div>
+    <p class="note">Last 30 closed days. Hold % and average deposit are Looker Studio calculated fields (sum ÷ sum), so they stay correct at any date grain.</p>
+  </section>
+
+  <section class="view" id="v-players">
+    <div class="grid two">
+      <div class="card"><h2>GGR by province</h2><div class="chart"><canvas id="c-prov"></canvas></div></div>
+      <div class="card"><h2>NGR by value segment</h2><div class="chart"><canvas id="c-seg"></canvas></div></div>
+    </div>
+    <div class="card" style="margin-top:14px"><h2>FTD cohort retention (% of cohort active)</h2><div class="scroll"><table id="t-cohort"></table></div></div>
+    <p class="note">Built on <code>rpt_player_activity_daily</code>: one pre-joined row per player per day, so the team can add any breakdown (province, channel, age band, KYC, segment) without SQL.</p>
+  </section>
+
+  <section class="view" id="v-health">
+    <div class="grid two">
+      <div class="card"><h2>Reconciliation to platform report</h2><div class="scroll"><table id="t-recon"></table></div></div>
+      <div class="card"><h2>Ingestion status</h2><div class="scroll"><table id="t-loads"></table></div></div>
+    </div>
+    <p class="note">Each closed day is compared with the platform's own back-office totals (tolerance R1.00). A mismatch fails the dbt run and sends an alert, so nobody reports a figure that hasn’t been validated.</p>
+  </section>
+</main>
+<script>
+const D=/*__DATA__*/null;
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const R=v=>"R"+Math.round(v).toLocaleString("en-ZA");
+const Rk=v=>Math.abs(v)>=1e6?"R"+(v/1e6).toFixed(2)+"m":"R"+(v/1e3).toFixed(1)+"k";
+const sum=(a,k)=>a.reduce((s,r)=>s+(r[k]||0),0);
+const d=D.daily, labels=d.map(r=>r.report_date.slice(5));
+const T={dep:sum(d,"deposits"),wd:sum(d,"withdrawals"),to:sum(d,"turnover"),ggr:sum(d,"ggr"),bc:sum(d,"bonus_cost"),ngr:sum(d,"ngr"),ftd:sum(d,"ftd_count"),reg:sum(d,"registrations"),dc:sum(d,"deposit_count")};
+const kp=[["Deposits",Rk(T.dep)],["Net deposits",Rk(T.dep-T.wd)],["Turnover",Rk(T.to)],["GGR",Rk(T.ggr)],["Hold %",(100*T.ggr/T.to).toFixed(2)+"%"],["Bonus cost",Rk(T.bc)],["NGR",Rk(T.ngr)],["Registrations",T.reg.toLocaleString()],["FTDs",T.ftd.toLocaleString()],["Avg deposit",R(T.dep/T.dc)]];
+document.getElementById("kpis").innerHTML=kp.map(([l,v])=>`<div class="card kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+let charts=[];
+function draw(){
+  charts.forEach(c=>c.destroy());charts=[];
+  const ink=css("--muted"),grid=css("--line"),a=css("--accent"),b=css("--accent2"),n=css("--neg");
+  Chart.defaults.color=ink;Chart.defaults.borderColor=grid;Chart.defaults.font.family='"IBM Plex Sans",system-ui,sans-serif';
+  const opts=(money=true,extra={})=>Object.assign({maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{labels:{boxWidth:10}},tooltip:{callbacks:{label:c=>c.dataset.label+": "+(money?R(c.parsed.y??c.parsed.x):c.parsed.y)}}},scales:{y:{ticks:{callback:v=>money?Rk(v):v}}}},extra);
+  const mk=(id,cfg)=>charts.push(new Chart(document.getElementById(id),cfg));
+  mk("c-ggr",{type:"line",data:{labels,datasets:[{label:"GGR",data:d.map(r=>r.ggr),borderColor:a,backgroundColor:a,tension:.25,pointRadius:0},{label:"NGR",data:d.map(r=>r.ngr),borderColor:b,backgroundColor:b,tension:.25,pointRadius:0}]},options:opts()});
+  mk("c-dep",{type:"bar",data:{labels,datasets:[{label:"Deposits",data:d.map(r=>r.deposits),backgroundColor:a},{label:"Withdrawals",data:d.map(r=>-r.withdrawals),backgroundColor:n}]},options:opts(true,{scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>Rk(v)}}}})});
+  mk("c-prod",{type:"bar",data:{labels,datasets:[{label:"Casino",data:d.map(r=>r.casino_ggr),backgroundColor:a},{label:"Sportsbook",data:d.map(r=>r.sportsbook_ggr),backgroundColor:b}]},options:opts(true,{scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>Rk(v)}}}})});
+  mk("c-act",{type:"bar",data:{labels,datasets:[{type:"line",label:"Active players",data:d.map(r=>r.active_players),borderColor:a,backgroundColor:a,pointRadius:0,yAxisID:"y"},{label:"FTDs",data:d.map(r=>r.ftd_count),backgroundColor:b,yAxisID:"y1"}]},options:opts(false,{scales:{y:{position:"left"},y1:{position:"right",grid:{drawOnChartArea:false}}}})});
+  mk("c-prov",{type:"bar",data:{labels:D.province.map(r=>r.province),datasets:[{label:"GGR",data:D.province.map(r=>r.ggr),backgroundColor:a}]},options:opts(true,{indexAxis:"y",plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>R(c.parsed.x)}}},scales:{x:{ticks:{callback:v=>Rk(v)}}}})});
+  mk("c-seg",{type:"bar",data:{labels:D.segment.map(r=>r.value_segment),datasets:[{label:"NGR",data:D.segment.map(r=>r.ngr),backgroundColor:b}]},options:opts(true,{plugins:{legend:{display:false}}})});
+}
+// Cohort table
+const coh={},maxM=Math.max(...D.cohorts.map(r=>r.m));
+D.cohorts.forEach(r=>{(coh[r.cohort]??={n:r.n,m:{}}).m[r.m]=r.pct});
+let th="<tr><th>FTD cohort</th><th>Players</th>"+[...Array(maxM+1).keys()].map(m=>`<th>M${m}</th>`).join("")+"</tr>";
+document.getElementById("t-cohort").innerHTML=th+Object.entries(coh).map(([c,o])=>`<tr><td>${c}</td><td>${o.n}</td>`+[...Array(maxM+1).keys()].map(m=>`<td>${o.m[m]!=null?o.m[m]+"%":""}</td>`).join("")+"</tr>").join("");
+document.getElementById("t-recon").innerHTML="<tr><th>Metric</th><th>Days matched</th><th>Mismatches</th><th>Max diff</th></tr>"+D.recon.map(r=>`<tr><td>${r.metric}</td><td>${r.matched}</td><td class="${r.mismatched?"bad":"ok"}">${r.mismatched}</td><td>${R(r.max_diff||0)}</td></tr>`).join("");
+document.getElementById("t-loads").innerHTML="<tr><th>Resource</th><th>Status</th><th>Hours since success</th><th>Failures 24h</th></tr>"+D.loads.map(r=>`<tr><td>${r.resource}</td><td class="${r.last_status==="success"&&!r.is_stale?"ok":"bad"}">${r.is_stale?"stale":r.last_status}</td><td>${r.hours_since_success}</td><td>${r.failures_24h}</td></tr>`).join("");
+// Routing
+const views=["overview","players","health"];
+function show(){const v=views.includes(location.hash.slice(1))?location.hash.slice(1):"overview";
+  views.forEach(x=>{document.getElementById("v-"+x).classList.toggle("on",x===v)});
+  document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("on",a.dataset.v===v));draw();}
+window.addEventListener("hashchange",show);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
+show();
+</script>
+</body>
+</html>

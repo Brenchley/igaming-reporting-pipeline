@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: ops_reconciliation
+    description: Daily comparison of our figures with the platform's own back-office report.
+    columns:
+      - name: status
+        data_tests:
+          - accepted_values: {arguments: {values: ['match', 'mismatch', 'not_checked_partial_day']}}
+  - name: ops_load_health
+    description: Latest ingestion status and staleness per resource.

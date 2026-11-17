@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: stg_crm__players
+    description: Latest state of each player (deduplicated). No direct identifiers.
+    columns:
+      - name: player_id
+        data_tests: [unique, not_null]
+      - name: kyc_status
+        data_tests:
+          - accepted_values: {arguments: {values: ['verified', 'pending', 'failed']}}
+      - name: account_status
+        data_tests:
+          - accepted_values: {arguments: {values: ['active', 'self_excluded', 'closed']}}
+
+  - name: stg_crm__transactions
+    description: Latest state of each deposit/withdrawal.
+    columns:
+      - name: transaction_id
+        data_tests: [unique, not_null]
+      - name: player_id
+        data_tests:
+          - not_null
+          - relationships: {arguments: {to: ref('stg_crm__players'), field: player_id}}
+      - name: transaction_type
+        data_tests:
+          - accepted_values: {arguments: {values: ['deposit', 'withdrawal']}}
+      - name: currency
+        data_tests:
+          - accepted_values: {arguments: {values: ['ZAR']}}
+
+  - name: stg_crm__bets
+    description: Latest state of each bet. GGR is recognised on settlement date.
+    columns:
+      - name: bet_id
+        data_tests: [unique, not_null]
+      - name: player_id
+        data_tests:
+          - relationships: {arguments: {to: ref('stg_crm__players'), field: player_id}}
+      - name: product
+        data_tests:
+          - accepted_values: {arguments: {values: ['casino', 'sportsbook']}}
+      - name: payout
+        description: Null until the bet settles.
+
+  - name: stg_crm__bonus_events
+    columns:
+      - name: bonus_event_id
+        data_tests: [unique, not_null]
+
+  - name: stg_crm__daily_summary
+    columns:
+      - name: report_date
+        data_tests: [unique, not_null]

@@ -1,0 +1,50 @@
+name: igaming_reporting
+version: "1.0.0"
+config-version: 2
+profile: igaming_reporting
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # Reporting day boundary. SA has no daylight saving, so SAST = UTC+2 all year.
+  reporting_timezone: "Africa/Johannesburg"
+  utc_offset_hours: 2
+
+  # NGR deductions: CONFIRM WITH THE OPERATOR'S FINANCE TEAM during discovery.
+  # Provincial gambling levies differ by licensing province, and if GGR is VAT-inclusive
+  # VAT is typically GGR x 15/115 (= 0.1304). Defaults are 0 so NGR = GGR - bonus cost.
+  gambling_levy_rate: 0.0
+  vat_fraction_of_ggr: 0.0
+
+  # Which bonus events count as bonus cost (money that became withdrawable cash).
+  bonus_cost_event_types: ["released"]
+
+  # Max acceptable absolute difference (ZAR) between our figures and the platform's own report.
+  reconciliation_tolerance_zar: 1.00
+  # Don't reconcile the current (partial) day.
+  reconciliation_exclude_recent_days: 1
+
+  # Hours after which a resource with no successful load is considered stale.
+  freshness_alert_hours: 3
+
+models:
+  igaming_reporting:
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: view
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +schema: marts
+    reporting:
+      +materialized: table
+      +schema: reporting
+    ops:
+      +materialized: table
+      +schema: ops_reporting

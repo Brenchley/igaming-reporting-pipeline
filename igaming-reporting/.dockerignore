@@ -1,0 +1,7 @@
+warehouse.duckdb*
+mock_crm/data
+dbt/target
+dbt/logs
+docs
+**/__pycache__
+.git

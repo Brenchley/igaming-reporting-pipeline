@@ -1,0 +1,43 @@
+# Local demo:  docker compose up --build
+# Output (warehouse + dashboard preview) is written to ./output on your machine.
+services:
+  mock-api:
+    build: {context: ., dockerfile: Dockerfile.local}
+    command: sh -c "python mock_crm/generate_data.py && python mock_crm/app.py"
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8765"
+      MOCK_API_TOKEN: local-dev-token
+    ports: ["8765:8765"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8765/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  pipeline:
+    build: {context: ., dockerfile: Dockerfile.local}
+    depends_on:
+      mock-api: {condition: service_healthy}
+    command: sh -c "python pipeline.py; status=$$?; python scripts/build_dashboard_preview.py; exit $$status"
+    environment:
+      WAREHOUSE: duckdb
+      DUCKDB_PATH: /output/warehouse.duckdb
+      CRM_API_BASE_URL: http://mock-api:8765
+      CRM_API_TOKEN: local-dev-token
+      SUMMARY_LOOKBACK_DAYS: "120"
+      PREVIEW_OUT: /output/dashboard_preview.html
+      # ALERT_WEBHOOK_URL: https://hooks.slack.com/services/...   # optional: real alerts
+    volumes: ["./output:/output"]
+
+  # Optional: dbt lineage graph + data dictionary at http://localhost:8080
+  #   docker compose --profile docs up docs
+  docs:
+    profiles: ["docs"]
+    build: {context: ., dockerfile: Dockerfile.local}
+    working_dir: /app/dbt
+    command: sh -c "dbt docs generate --profiles-dir . && dbt docs serve --profiles-dir . --host 0.0.0.0 --port 8080"
+    environment:
+      DUCKDB_PATH: /output/warehouse.duckdb
+    volumes: ["./output:/output"]
+    ports: ["8080:8080"]

@@ -1,0 +1,5 @@
+requests>=2.32
+flask>=3.0
+duckdb>=1.1
+dbt-core>=1.10,<2
+dbt-duckdb>=1.9
